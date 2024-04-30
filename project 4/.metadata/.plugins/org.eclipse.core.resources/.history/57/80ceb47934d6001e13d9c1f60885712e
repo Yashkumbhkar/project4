@@ -1,0 +1,60 @@
+<%@page import="in.co.pro4.bean.BankBean"%>
+<%@page import="in.co.pro4.utility.ServletUtility"%>
+<%@page import="in.co.pro4.controller.BankCtl"%>
+<%@page import="in.co.pro4.controller.ORSView"%>
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+	pageEncoding="ISO-8859-1"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Bank</title>
+</head>
+<body>
+	<center>
+		<jsp:useBean id="bean" class="in.co.pro4.bean.BankBean" scope="reuest"></jsp:useBean>
+		<%@include file="Header.jsp"%>
+
+		<form action="<%=ORSView.BANK_CTL%>" method="get">
+
+			<%
+				ServletUtility.getSuccessMessage(request);
+			%>
+
+			<table width="100%" align="center">
+				<div align="center">
+					<h1>Bank</h1>
+					<table style="height: 100px; padding-bottom: 5%;">
+						<!-- 	<tr>
+							<th align="center">Id: <span style="color: red">*</span>
+
+							</th>
+							<td><input type="text" name="id"
+								placeholder="Enter first name" style="width: 231px;">
+						<tr>
+ -->
+						<th align="center">Name: <span style="color: red">*</span>
+
+						</th>
+						<td><input type="text" name="fname"
+							value="<%=bean.getName()%>" placeholder="Enter name"
+							style="width: 231px;">
+						<tr>
+							<th align="center">Amount: <span style="color: red">*</span>
+
+							</th>
+							<td><input type="text" name="accountNo"
+								value="<%=bean.getAccountNo()%>" placeholder="Enter amount"
+								style="width: 231px;"> &nbsp;
+						<tr>
+							<th></th>
+							<td colspan="2">&nbsp; &emsp; <input type="submit"
+								name="operation" value="<%=BankCtl.OP_SAVE%>"> <input
+								type="submit" name="operation" value="<%=BankCtl.OP_CANCEL%>"></td>
+
+							</div>
+	</center>
+	<%@include file="Footer.jsp"%>
+	</form>
+</body>
+</html>

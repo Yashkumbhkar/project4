@@ -1,0 +1,33 @@
+package in.co.pro4.model;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+
+import org.apache.log4j.Logger;
+
+import in.co.pro4.bean.BankBean;
+import in.co.pro4.bean.UserBean;
+import in.co.pro4.utility.JDBCDataSource;
+
+public class BankModel {
+
+	private static Logger log = Logger.getLogger(UserModel.class);
+
+
+	
+	
+	
+	 public  static void add(BankBean bean) throws Exception {
+		 
+		  Connection conn = JDBCDataSource.getConnection();
+		  PreparedStatement ps = conn.prepareStatement(" insert into st_bank values(?,?,?)");
+		  ps.setLong(1, bean.getId());
+		  ps.setString(2, bean.getName());
+		  ps.setString(3, bean.getAccountNo());
+		  
+		   ps.executeUpdate();
+		  ps.close();
+		
+		 
+	 }
+}

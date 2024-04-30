@@ -1,0 +1,337 @@
+package in.co.pro4.model;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+
+import in.co.pro4.bean.PaymentBean;
+import in.co.pro4.bean.UserBean;
+import in.co.pro4.exception.ApplicationException;
+import in.co.pro4.exception.DuplicateRecordException;
+import in.co.pro4.exception.RecordNotFoundException;
+import in.co.pro4.utility.EmailBuilder;
+import in.co.pro4.utility.EmailMassage;
+import in.co.pro4.utility.EmailUtility;
+import in.co.pro4.utility.JDBCDataSource;
+
+public class PaymentModel{
+	
+	 
+	public static Integer nextPK() throws ApplicationException {
+		
+
+		Connection conn = null;
+		int pk = 0;
+
+		try {
+			conn = JDBCDataSource.getConnection();
+			PreparedStatement pstmt = conn.prepareStatement("SELECT MAX(ID) FROM ST_USER");
+			ResultSet rs = pstmt.executeQuery();
+
+			while (rs.next()) {
+				pk = rs.getInt(1);
+			}
+			rs.close();
+		} catch (Exception e) {
+		
+			throw new ApplicationException("Exception : in getting next pk");
+		} finally {
+			JDBCDataSource.closeConnection(conn);
+		}
+
+		
+		return pk + 1;
+	}
+	/**
+	 * 
+	 * Add a User
+	 *
+	 */
+	public static long add(PaymentBean bean) throws ApplicationException, DuplicateRecordException {
+
+		Connection conn = null;
+		int pk = 0;
+
+		try {
+			conn = JDBCDataSource.getConnection();
+			pk = nextPK();
+			conn.setAutoCommit(false);
+			PreparedStatement pstmt = conn.prepareStatement(
+					"INSERT INTO ST_USER VALUES(?, ?, ?, ?, ?)");
+			pstmt.setLong(1, pk);
+	 	     pstmt.setString(2, bean.getPaymentType());
+	 	     pstmt.setString(3, bean.getAmount());
+	 	     pstmt.setString(4, bean.getBankName());
+	 	     pstmt.setString(5, bean.getCustomerName());
+	 	     pstmt.setString(6, bean.getTransactionId());
+	 	     
+	 	     
+			pstmt.executeUpdate();
+ 
+			conn.commit();
+			pstmt.close();
+		} catch (Exception e) {
+     
+try {conn.rollback();} catch (Exception e1) {throw new ApplicationException("Exception : add rollback=" + e1.getMessage());}
+
+
+       throw new ApplicationException("Exception : in adding user="+e.getMessage());	
+			
+	} finally {
+			JDBCDataSource.closeConnection(conn);
+		}
+		return pk;
+	}
+	/**
+	 * 
+	 * Update a user
+	 *
+	 */
+	public void update(PaymentBean bean) throws ApplicationException, DuplicateRecordException {
+		
+		
+		Connection conn = null ; 
+		try {
+			conn = JDBCDataSource.getConnection();
+			conn.setAutoCommit(false);
+			PreparedStatement pstmt = conn.prepareStatement(
+					"UPDATE ST_USER SET Payment_Type =?,Amount =?,BankName =?, CustomerName=?, TransactionId=? WHERE  ID=?");
+			  pstmt.setString(1, bean.getPaymentType());
+		 	     pstmt.setString(2, bean.getAmount());
+		 	     pstmt.setString(3, bean.getBankName());
+		 	     pstmt.setString(4, bean.getCustomerName());
+		 	     pstmt.setString(5, bean.getTransactionId());
+		 	     pstmt.setLong(6, bean.getId());
+		 	     
+			
+			pstmt.executeUpdate();
+
+			conn.commit();
+			pstmt.close();
+
+		} catch (Exception e) {
+						try {
+				conn.rollback();
+			} catch (Exception e1) {
+				throw new ApplicationException("Exception : update rollback" + e1.getMessage());
+			}
+			throw new ApplicationException("Exception : in updating user");
+		} finally {
+			JDBCDataSource.closeConnection(conn);
+		}
+		
+	}
+	/**
+	 * 
+	 * Delete a User
+	 *
+	 */
+	public static void delete(PaymentBean bean) throws ApplicationException {
+
+		Connection conn = null;
+
+		try {
+			conn = JDBCDataSource.getConnection();
+			conn.setAutoCommit(false);
+			PreparedStatement pstmt = conn.prepareStatement("DELETE FROM ST_USER WHERE id=?");
+			pstmt.setLong(1, bean.getId());
+			pstmt.executeUpdate();
+
+			conn.commit();
+			pstmt.close();
+		} catch (Exception e) {
+		
+			try {
+				conn.rollback();
+			} catch (Exception e1) {
+				throw new ApplicationException("Exception : delete rollback" + e1.getMessage());
+			}
+			throw new ApplicationException("Exception : in deleting user");
+		} finally {
+			JDBCDataSource.closeConnection(conn);
+		}
+		
+	}
+
+
+	/**
+	 * 
+	 * Find User by Login
+	 *
+	 */
+
+	/**
+	 * 
+	 * Find User by PK
+	 *
+	 */
+	public PaymentBean findByPK(long pk) throws ApplicationException {
+	
+		StringBuffer sql = new StringBuffer("SELECT * FROM ST_USER WHERE ID=?");
+
+		Connection conn = null;
+		PaymentBean bean = null;
+
+		try {
+			conn = JDBCDataSource.getConnection();
+			PreparedStatement pstmt = conn.prepareStatement(sql.toString());
+			pstmt.setLong(1, pk);
+			ResultSet rs = pstmt.executeQuery();
+
+			while (rs.next()) {
+				bean = new PaymentBean();
+
+				bean.setId(rs.getLong(1));
+			    bean.setPaymentType(rs.getString(2));
+		 	     bean.setAmount(rs.getString(3));
+		 	     bean.setBankName(rs.getString(4));
+		 	     bean.setCustomerName(rs.getString(5));
+		 	     bean.setTransactionId(rs.getString(6));
+		 	    
+		 	     
+			}
+			rs.close();
+		} catch (Exception e) {
+			
+			throw new ApplicationException("Exception : In getting user by PK");
+		} finally {
+			JDBCDataSource.closeConnection(conn);
+		}
+		
+		return bean;
+	}
+	/**
+	 * 
+	 * Search User with pagination
+	 *
+	 *
+	 */
+	public List search(PaymentBean bean, int pageNo, int pageSize) throws ApplicationException {
+		System.out.println("List search(UserBean bean, int pageNo, int pageSize)");
+		
+		StringBuffer sql = new StringBuffer("SELECT * FROM ST_USER WHERE 1=1");
+
+		
+		if (pageSize > 0) {
+			pageNo = (pageNo - 1) * pageSize;
+
+			sql.append(" LIMIT " + pageNo + ", " + pageSize);
+		}
+		
+		System.out.println(sql.toString());
+	
+		ArrayList list = new ArrayList();
+		Connection conn = null;
+
+		try {
+			conn = JDBCDataSource.getConnection();
+			PreparedStatement pstmt = conn.prepareStatement(sql.toString());
+
+			ResultSet rs = pstmt.executeQuery();
+			while (rs.next()) {
+				bean = new PaymentBean();
+
+				bean.setId(rs.getLong(1));
+				   bean.setPaymentType(rs.getString(2));
+			 	     bean.setAmount(rs.getString(3));
+			 	     bean.setBankName(rs.getString(4));
+			 	     bean.setCustomerName(rs.getString(5));
+			 	     bean.setTransactionId(rs.getString(6));
+
+			
+				list.add(bean);
+			}
+			rs.close();
+		} catch (Exception e) {
+			
+			throw new ApplicationException("Exception : in getting user list");
+		} finally {
+			JDBCDataSource.closeConnection(conn);
+		}
+		
+		return list;
+	}
+	/**
+	 * 
+	 * Search a User 
+	 *
+	 */
+	
+	/**
+	 * 
+	 * Get List of User 
+	 *
+	 */
+	public List list() throws ApplicationException {
+		return list(0, 0);
+	}
+	/**
+	 * 
+	 * Get List of User with pagination
+	 *
+	 */
+	public List list(int pageNo, int pageSize) throws ApplicationException {
+		
+		System.out.println("UserModel=List list(int pageNo, int pageSize)"+pageNo+"  "+pageSize);
+		
+		ArrayList list = new ArrayList();
+
+		StringBuffer sql = new StringBuffer("SELECT * FROM ST_USER");
+
+		if (pageSize > 0) {
+		
+			pageNo = (pageNo - 1) * pageSize;
+			System.out.println("ListPageNo="+pageNo);
+
+			sql.append(" LIMIT " + pageNo + "," + pageSize);
+		}
+
+		Connection conn = null;
+		UserBean bean = null;
+
+		try {
+			conn = JDBCDataSource.getConnection();
+			PreparedStatement pstmt = conn.prepareStatement(sql.toString());
+
+			ResultSet rs = pstmt.executeQuery();
+
+			while (rs.next()) {
+				bean = new UserBean();
+
+				bean.setId(rs.getLong(1));
+				bean.setFirstName(rs.getString(2));
+				bean.setLastName(rs.getString(3));
+				bean.setLogIn(rs.getString(4));
+				bean.setPassword(rs.getString(5));
+				bean.setDob(rs.getDate(6));
+				bean.setMobileNo(rs.getString(7));
+				bean.setRoleId(rs.getLong(8));
+				bean.setUnSuccessfullLogin(rs.getInt(9));
+				bean.setGender(rs.getString(10));
+				bean.setLastLogin(rs.getTimestamp(11));
+				bean.setLock(rs.getString(12));
+				bean.setRegisteredIP(rs.getString(13));
+				bean.setLastloginIP(rs.getString(14));
+				bean.setCreatedBy(rs.getString(15));
+				bean.setModifiedBy(rs.getString(16));
+				bean.setCreatedDatetime(rs.getTimestamp(17));
+				bean.setModifiedDatetime(rs.getTimestamp(18));
+
+				list.add(bean);
+			}
+			rs.close();
+		} catch (Exception e) {
+	
+			throw new ApplicationException("Exception : in getting list");
+		} finally {
+			JDBCDataSource.closeConnection(conn);
+		}
+		
+		return list;
+	}
+}
+	

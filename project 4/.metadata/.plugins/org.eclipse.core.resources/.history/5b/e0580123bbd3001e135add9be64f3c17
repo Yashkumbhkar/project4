@@ -1,0 +1,36 @@
+package in.co.pro4.controller;
+
+import java.io.IOException;
+
+import javax.servlet.Servlet;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.log4j.Logger;
+
+import in.co.pro4.utility.ServletUtility;
+
+@WebServlet(name = "BankCtl", urlPatterns = { "/ctl/BankCtl" })
+public class BankCtl extends BaseCtl{
+	@Override
+	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+	//	resp.sendRedirect(getView());
+		
+		 ServletUtility.forward(getView(), req, resp);
+	}
+	
+	@Override
+	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+	
+	}
+
+	@Override
+	protected String getView() {
+		// TODO Auto-generated method stub
+		return ORSView.BANK_VIEW ;
+	}
+
+}
